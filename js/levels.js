@@ -118,15 +118,15 @@ HG.nivaer = (() => {
 
     const iFylket = kommuner.filter(k => k.fylke === fylke);
     const fylkeKart = { modus: 'fylke', aktive: new Set(iFylket.map(k => k.id)), fylke };
-    const skjult = { modus: 'skjult', aktive: alleKommuner };
+    const helNorge = { modus: 'norge', aktive: alleKommuner };
     const ingen = new Set();
     switch (niva) {
       case 1: return { ...felles, lag: 'f', sporsmal: HG.stokk(fylker), tekst: visNavn, kart: { modus: 'fylker', aktive: ingen } };
       case 2: return { ...felles, lag: 'f', sporsmal: HG.stokk(fylker), tekst: visNr, kart: { modus: 'fylker', aktive: ingen } };
       case 3: return { ...felles, lag: 'k', sporsmal: HG.stokk(iFylket), tekst: visNavn, kart: fylkeKart };
       case 4: return { ...felles, lag: 'k', sporsmal: HG.stokk(iFylket), tekst: visNr, kart: fylkeKart, visEtiketter: true };
-      case 5: return { ...felles, lag: 'k', sporsmal: vektetUtvalg(kommuner, NIVA5_ANTALL, t), tekst: visNr, kart: skjult };
-      case 6: return { ...felles, lag: 'k', sporsmal: HG.stokk(kommuner), tekst: visNr, kart: skjult, liv: 1 };
+      case 5: return { ...felles, lag: 'k', sporsmal: vektetUtvalg(kommuner, NIVA5_ANTALL, t), tekst: visNr, kart: helNorge };
+      case 6: return { ...felles, lag: 'k', sporsmal: HG.stokk(kommuner), tekst: visNr, kart: helNorge, liv: 1 };
     }
     throw new Error('Ukjent nivå ' + id);
   }

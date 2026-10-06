@@ -72,8 +72,8 @@ tools/geo.mjs
 | 2 | Fylke borders | fylker | "46" | — |
 | 3 | Zoomed to one fylke, kommune borders | kommuner in that fylke | "Finn Voss" | — |
 | 4 | Same as 3 | same | "4621" | label "4621 Voss" |
-| 5 | Norway outline, free zoom | all kommuner (borders hidden) | "4621" | — |
-| 6 | Norway outline, free zoom | all kommuner (borders hidden) | "4621" | — |
+| 5 | Kommune borders (fylke borders slightly stronger), free zoom | all kommuner | "4621" | — |
+| 6 | Same as 5 | all kommuner | "4621" | — |
 
 There is never hover text or a highlight on hover. Kommuner you can't see are still clickable because they have a transparent fill.
 

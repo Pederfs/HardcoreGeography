@@ -54,7 +54,7 @@ HG.Kart = class Kart {
   }
 
   // modus: 'fylker' (nivå 1–2), 'fylke' (nivå 3–4), 'bydel' (Oslo i nivå 3–4),
-  // 'post' (postnummer-bonus) eller 'skjult' (nivå 5–6).
+  // 'post' (postnummer-bonus) eller 'norge' (nivå 5–6, alle kommuner).
   // aktive: id-ene som kan klikkes. fylke: fylket som utheves. boks: startvisningen.
   // fri: spilleren kan zoome og panorere selv.
   oppsett({ modus, aktive, fylke = null, boks = null, fri = true }) {
