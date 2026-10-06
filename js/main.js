@@ -12,8 +12,9 @@
 
   const kart = new HG.Kart($('#kart'));
 
+  // 'P:alle' står for hele postnummer-bonusen når vi melder hva som ble låst opp.
   const alleIder = () => ['1', '2',
-    ...N.fylker.flatMap(f => ['3:' + f.nr, '4:' + f.nr]), '5', '6'];
+    ...N.fylker.flatMap(f => ['3:' + f.nr, '4:' + f.nr]), '5', '6', 'P:alle'];
   const apen = id => testmodus || nivaer.erApen(id, t);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -42,7 +43,8 @@
     const mestret = t.mestret[f.nr]
       ? '<span class="stjerne" title="Mestret">★</span>'
       : (t.bestatt['4:' + f.nr] ? '<span class="stjerne glemt" title="Mestret før, men glemt i nivå 5 eller 6">☆</span>' : '');
-    return `<li><span class="fylke-nr">${f.nr}</span><span class="fylke-navn">${esc(f.navn)}</span>
+    const navn = f.nr === nivaer.OSLO ? `${esc(f.navn)} <small>(bydeler)</small>` : esc(f.navn);
+    return `<li><span class="fylke-nr">${f.nr}</span><span class="fylke-navn">${navn}</span>
       ${knapp(3, 'Navn')}${knapp(4, 'Nummer')}<span class="mestret">${mestret}</span></li>`;
   }
 
@@ -65,7 +67,26 @@
       </section>
       ${kort('5', `${nivaer.NIVA5_ANTALL} kommunenummer fra hele landet. Ingen grenser, du zoomer selv.`)}
       ${kort('6', 'Alle 357 kommuner. Ett liv. Ingen grenser. Lengste streak er poengsummen.', rekord)}
+      ${postBonus()}
     `;
+  }
+
+  function postBonus() {
+    const apenBonus = apen('P:alle');
+    const rad = (id, navn, antall) => `<li><span class="fylke-navn">${esc(navn)}</span>
+      <span class="antall">${antall}</span>
+      <button class="liten-knapp ${t.bestatt[id] ? 'ok' : ''}" data-start="${id}" ${apenBonus ? '' : 'disabled'}
+        title="${esc(nivaer.tittel(id))}">${t.bestatt[id] ? '✓ ' : ''}Spill</button></li>`;
+    const antallBestatt = nivaer.postGrupper.filter(g => t.bestatt['P:' + g.nr]).length;
+    return `<section class="niva fylkesliste bonus ${apenBonus ? '' : 'stengt'}">
+      <span class="niva-topp"><strong>Bonus: Postnummer i Oslo</strong>
+        <span class="merke">${apenBonus ? `${antallBestatt} / ${nivaer.postGrupper.length} bestått` : 'Låst'}</span></span>
+      <span class="niva-tekst">${apenBonus
+        ? 'Alle postnummer med eget område i Oslo, én bydel om gangen. Sentrum og Marka er egne grupper.'
+        : 'Låses opp når du har bestått nivå 4 for Oslo (bydelsnummer).'}</span>
+      <ul>${nivaer.postGrupper.map(g => rad('P:' + g.nr, g.navn, g.antall)).join('')}
+        ${rad('P:alle', 'Hele Oslo', nivaer.postnummer.length)}</ul>
+    </section>`;
   }
 
   $('#meny').addEventListener('click', e => {
@@ -80,7 +101,7 @@
     }
   });
 
-  $('#kilde').textContent = N.kilde;
+  $('#kilde').textContent = N.kilde + ' ' + window.OSLO.kilde;
 
   // --- Runde ---
 
@@ -109,13 +130,13 @@
     $('#fremdrift').textContent = niva.niva === 6
       ? `Streak ${runde.streak} · Rekord ${Math.max(t.rekord, runde.lengste)}`
       : `${runde.igjen} igjen`;
-    $('#ikke-perfekt').hidden = !(runde.feil > 0 && niva.niva < 6);
+    $('#ikke-perfekt').hidden = !(runde.feil > 0 && niva.liv > 1);
   }
 
   kart.paKlikk(async id => {
     if (!runde || runde.ferdig || opptatt) return;
     // Bare klikk i laget som spørres om, teller.
-    if (id.startsWith('f') !== (niva.niva <= 2)) return;
+    if (nivaer.type(id) !== niva.lag) return;
 
     const denne = runde;
     const { riktig, maal } = runde.svar(id);
@@ -157,7 +178,7 @@
     if (n === 3) return '4:' + fylke;
     if (n === 4) return nesteFylke();
     if (n === 5) return '6';
-    return null;
+    return null; // nivå 6 og bonusen
   }
 
   function avslutt() {
@@ -186,7 +207,7 @@
     } else if (runde.perfekt) {
       tittel = 'Perfekt!';
       tekst = nyApne.length
-        ? `Låst opp: ${nyApne.map(x => esc(nivaer.tittel(x))).join(', ')}.`
+        ? `Låst opp: ${nyApne.map(x => (x === 'P:alle' ? 'Bonus: Postnummer i Oslo' : esc(nivaer.tittel(x)))).join(', ')}.`
         : 'Alt riktig på første forsøk.';
       if (niva.niva === 4) tekst += ` ${esc(nivaer.fylkeNavn[niva.fylke])} er mestret.`;
     } else if (runde.tapt) {

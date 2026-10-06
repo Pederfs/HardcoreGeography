@@ -21,8 +21,14 @@ HG.Kart = class Kart {
     };
     this.lag = lag;
 
+    const O = window.OSLO;
+    lag('path', { d: O.land }, lag('clipPath', { id: 'oslo-klipp' }, lag('defs', {}, svg)));
     lag('path', { class: 'omriss', d: N.omriss }, svg);
     this.kommuneLag = lag('g', { class: 'kommuner' }, svg);
+    // Bydeler og postnummer går ut i fjorden, så de klippes etter Oslos kystlinje.
+    const oslo = lag('g', { class: 'oslo', 'clip-path': 'url(#oslo-klipp)' }, svg);
+    this.postLag = lag('g', { class: 'postnummer' }, oslo);
+    this.bydelLag = lag('g', { class: 'bydeler' }, oslo);
     this.fylkeLag = lag('g', { class: 'fylker' }, svg);
     this.etikettLag = lag('g', { class: 'etiketter' }, svg);
 
@@ -34,31 +40,35 @@ HG.Kart = class Kart {
       this.boks[k.nr] = k.boks;
       this.punkt[k.nr] = k.punkt;
     }
-    for (const f of N.fylker) {
-      const id = 'f' + f.nr;
-      this.el[id] = lag('path', { d: f.d, 'data-id': id }, this.fylkeLag);
-      this.boks[id] = f.boks;
-      this.punkt[id] = f.punkt;
-    }
+    const leggTil = (id, o, forelder) => {
+      this.el[id] = lag('path', { d: o.d, 'data-id': id }, forelder);
+      this.boks[id] = o.boks;
+      this.punkt[id] = o.punkt;
+    };
+    for (const f of N.fylker) leggTil('f' + f.nr, f, this.fylkeLag);
+    for (const b of O.bydeler) leggTil('b' + b.nr, b, this.bydelLag);
+    for (const p of O.postnummer) leggTil('p' + p.nr, p, this.postLag);
 
     this.lyttEtterPekere();
     new ResizeObserver(() => (this.fri ? this.tegn() : this.tilpass(this.malBoks))).observe(svg);
   }
 
-  // modus: 'fylker' (nivå 1–2), 'fylke' (nivå 3–4, med fylke), 'skjult' (nivå 5–6).
+  // modus: 'fylker' (nivå 1–2), 'fylke' (nivå 3–4), 'bydel' (Oslo i nivå 3–4),
+  // 'post' (postnummer-bonus) eller 'skjult' (nivå 5–6).
+  // aktive: id-ene som kan klikkes. fylke: fylket som utheves. boks: startvisningen.
   // fri: spilleren kan zoome og panorere selv.
-  oppsett({ modus, fylke = null, fri = true }) {
+  oppsett({ modus, aktive, fylke = null, boks = null, fri = true }) {
     this.fri = fri;
     this.svg.setAttribute('class', 'kart modus-' + modus + (fri ? ' fri' : ''));
-    for (const p of this.kommuneLag.children) {
-      p.classList.toggle('aktiv', modus === 'skjult' || p.dataset.fylke === fylke);
+    for (const lag of [this.kommuneLag, this.bydelLag, this.postLag]) {
+      for (const p of lag.children) p.classList.toggle('aktiv', aktive.has(p.dataset.id));
     }
     for (const p of this.fylkeLag.children) {
       p.classList.toggle('valgt', p.dataset.id === 'f' + fylke);
     }
     this.fjernEtiketter();
     this.fjernMarkeringer();
-    this.startBoks = modus === 'fylke' ? this.boks['f' + fylke] : [0, 0, this.N.bredde, this.N.hoyde];
+    this.startBoks = boks || (fylke ? this.boks['f' + fylke] : [0, 0, this.N.bredde, this.N.hoyde]);
     this.tilpass(this.startBoks);
   }
 
@@ -99,9 +109,9 @@ HG.Kart = class Kart {
     const r = this.svg.getBoundingClientRect();
     if (px === undefined) { px = r.width / 2; py = r.height / 2; }
     const { cx, cy, s } = this.vis;
-    // Lengst ut: startvisningen. Lengst inn: ca. 10 m per skjermpiksel.
+    // Lengst ut: startvisningen. Lengst inn: ca. 2 m per skjermpiksel (for små postnummer).
     const maks = this.passendeS(this.startBoks, 0.06);
-    const ny = Math.min(maks, Math.max(0.1, s / faktor));
+    const ny = Math.min(maks, Math.max(0.02, s / faktor));
     // Punktet under markøren blir liggende i ro.
     const mx = cx + (px - r.width / 2) * s, my = cy + (py - r.height / 2) * s;
     this.vis = { cx: mx - (px - r.width / 2) * ny, cy: my - (py - r.height / 2) * ny, s: ny };

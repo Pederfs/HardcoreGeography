@@ -48,7 +48,10 @@ js/quiz.js          round engine: question queue, lives, perfect flag, repeating
 js/levels.js        settings for Levels 1–6 (what is asked, what is drawn, unlock rules)
 js/main.js          screens, menu, wiring
 data/norge.js       generated, do not edit by hand
+data/oslo.js        generated: Oslo's bydeler and postnummer
 tools/build-data.mjs
+tools/build-oslo.mjs
+tools/geo.mjs
 ```
 
 ## Round engine (`quiz.js`)
@@ -86,8 +89,21 @@ There is never hover text or a highlight on hover. Kommuner you can't see are st
 
 **Testing:** add `?test` to the address to unlock every level.
 
+## Oslo: bydeler and postnummer (added 2026-10-06)
+
+Oslo is both fylke 03 and a single kommune (0301), so its Levels 3 and 4 used to have one question each. Now they use Oslo's 15 bydeler with SSB's numbers (030101–030115): Level 3 asks "Finn Frogner", and Level 4 asks "030105". Sentrum (030116) and Marka (030117) are SSB areas but not bydeler, so they are drawn grey and are never asked.
+
+**Bonus: Postnummer i Oslo** unlocks when Oslo's Level 4 is passed. Each of the 445 postnummer that has its own area is placed in the bydel where its label point lies. There is one round per bydel (Sentrum and Marka get their own) plus "Hele Oslo". The rules are the same as Level 4: 3 lives, a label after each correct answer, and green areas that can't be clicked again.
+
+**Data:** `tools/build-oslo.mjs` builds `data/oslo.js` (about 365 KB):
+- It orders the grunnkretser and postnummerområder for Oslo from Geonorge's download API as GeoJSON in UTM 33.
+- It merges the grunnkretser into bydeler using SSB's grunnkrets → bydel table (Klass 1 → 103), by removing the edges that neighbouring grunnkretser share. The script checks that the total area is the same before and after.
+- Both datasets reach out into the fjord to the kommune border, so the game clips them to Oslo's coastline (the robhop "L" version). Label points must lie on land.
+- Coordinates are in 10 m units, ten times finer than the rest of the map, so the smallest postnummer can be clicked. You can zoom in to about 2 m per screen pixel.
+- Shared geometry helpers (projection, label points, SVG paths) live in `tools/geo.mjs` and are used by both build scripts.
+
 ## Later (not in v1)
 
-- Bonus levels for bydeler in Oslo, Bergen, Trondheim and Stavanger.
+- Bydeler for Bergen, Trondheim and Stavanger. SSB's grunnkrets → bydel table already includes them, so `build-oslo.mjs` can be extended.
 - Export/import of progress.
 - Hosting on GitHub Pages so it can be played on a phone.
