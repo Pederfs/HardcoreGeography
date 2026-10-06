@@ -71,7 +71,7 @@
         <span class="niva-tekst">Navn først, så nummer. Nivå 5 åpnes når alle fylkene har bestått nummer.</span>
         <ul>${N.fylker.map(fylkeRad).join('')}</ul>
       </section>
-      ${kort('5', `${nivaer.NIVA5_ANTALL} kommunenummer fra hele landet. Kommunegrenser, men ingen navn.`)}
+      ${kort('5', `${nivaer.NIVA5_ANTALL} kommuner fra hele landet, med nummer og navn. Kommunegrenser, men ingen navn på kartet.`)}
       ${kort('6', 'Alle 357 kommuner. Ett liv. Ingen navn. Lengste streak er poengsummen.', rekord)}
       ${postBonus()}
     `;
@@ -131,9 +131,10 @@
   }
 
   function visSporsmal() {
-    const { liten, stor } = niva.tekst(runde.naa);
+    const { liten, stor, under = '' } = niva.tekst(runde.naa);
     $('#sporsmal .liten').textContent = liten;
     $('#sporsmal .stor').textContent = stor;
+    $('#sporsmal .under').textContent = under;
     oppdaterHud();
   }
 

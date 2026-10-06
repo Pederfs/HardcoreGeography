@@ -92,6 +92,7 @@ HG.nivaer = (() => {
   const NUMMERTYPE = { f: 'Fylkesnummer', k: 'Kommunenummer', b: 'Bydelsnummer', p: 'Postnummer' };
   const visNavn = s => ({ liten: 'Finn', stor: s.navn });
   const visNr = s => ({ liten: NUMMERTYPE[type(s.id)], stor: s.nr });
+  const visNrOgNavn = s => ({ ...visNr(s), under: s.navn });
   const etikett = s => (s.fullt ? `${s.nr} ${s.fullt}` : s.nr);
 
   // Lager alt en runde trenger for nivå-id-en.
@@ -125,7 +126,7 @@ HG.nivaer = (() => {
       case 2: return { ...felles, lag: 'f', sporsmal: HG.stokk(fylker), tekst: visNr, kart: { modus: 'fylker', aktive: ingen } };
       case 3: return { ...felles, lag: 'k', sporsmal: HG.stokk(iFylket), tekst: visNavn, kart: fylkeKart };
       case 4: return { ...felles, lag: 'k', sporsmal: HG.stokk(iFylket), tekst: visNr, kart: fylkeKart, visEtiketter: true };
-      case 5: return { ...felles, lag: 'k', sporsmal: vektetUtvalg(kommuner, NIVA5_ANTALL, t), tekst: visNr, kart: helNorge };
+      case 5: return { ...felles, lag: 'k', sporsmal: vektetUtvalg(kommuner, NIVA5_ANTALL, t), tekst: visNrOgNavn, kart: helNorge };
       case 6: return { ...felles, lag: 'k', sporsmal: HG.stokk(kommuner), tekst: visNr, kart: helNorge, liv: 1 };
     }
     throw new Error('Ukjent nivå ' + id);
