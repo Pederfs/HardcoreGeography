@@ -26,3 +26,4 @@ Se [PLAN.md](PLAN.md) for regler, nivåer og hvordan koden er bygd opp.
 
 Kartgrunnlag: Kartverket (CC BY 4.0), via [robhop/fylker-og-kommuner](https://github.com/robhop/fylker-og-kommuner). Kommuneliste: SSB.
 Bydeler i Oslo: SSBs grunnkretser og bydelskobling (CC BY 4.0). Postnummerområder: Posten/Kartverket via Geonorge (CC BY 4.0).
+Satellittbilder: Sentinel-2 cloudless – https://s2maps.eu av EOX IT Services GmbH (inneholder modifiserte Copernicus Sentinel-data 2024), CC BY-NC-SA 4.0. Krever internett.

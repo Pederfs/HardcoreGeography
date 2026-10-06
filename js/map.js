@@ -23,6 +23,12 @@ HG.Kart = class Kart {
 
     const O = window.OSLO;
     lag('path', { d: O.land }, lag('clipPath', { id: 'oslo-klipp' }, lag('defs', {}, svg)));
+    // Kartet og satellittlerretet ligger i samme beholder, som flyttes under zoom.
+    this.beholder = svg.parentNode;
+    this.flate = this.beholder.parentNode;
+    this.lerret = this.beholder.querySelector('.satbilde');
+    this.satellitt = new HG.Satellitt(this.lerret);
+    this.satPa = false;
     lag('path', { class: 'omriss', d: N.omriss }, svg);
     this.kommuneLag = lag('g', { class: 'kommuner' }, svg);
     // Bydeler og postnummer går ut i fjorden, så de klippes etter Oslos kystlinje.
@@ -49,7 +55,6 @@ HG.Kart = class Kart {
     for (const b of O.bydeler) leggTil('b' + b.nr, b, this.bydelLag);
     for (const p of O.postnummer) leggTil('p' + p.nr, p, this.postLag);
 
-    this.flate = svg.parentNode;
     this.lyttEtterPekere();
     let str = '';
     new ResizeObserver(() => {
@@ -65,9 +70,13 @@ HG.Kart = class Kart {
   // aktive: id-ene som kan klikkes. fylke: fylket som utheves. boks: startvisningen.
   // fri: spilleren kan zoome og panorere selv.
   // behold: behold grønne felt og etiketter (når nivå 5–6 bytter mellom stegene).
-  oppsett({ modus, aktive, fylke = null, boks = null, fri = true, behold = false }) {
+  // satellitt: vis satellittbilde under kartet.
+  oppsett({ modus, aktive, fylke = null, boks = null, fri = true, behold = false, satellitt = false }) {
     this.fri = fri;
-    this.svg.setAttribute('class', 'kart modus-' + modus + (fri ? ' fri' : ''));
+    this.modus = modus;
+    this.satPa = satellitt;
+    if (!satellitt) this.satellitt.tom();
+    this.settKlasse();
     for (const lag of [this.kommuneLag, this.bydelLag, this.postLag]) {
       for (const p of lag.children) p.classList.toggle('aktiv', aktive.has(p.dataset.id));
     }
@@ -82,12 +91,23 @@ HG.Kart = class Kart {
     this.tilpass(this.startBoks);
   }
 
+  settKlasse() {
+    this.svg.setAttribute('class', 'kart modus-' + this.modus + (this.fri ? ' fri' : '') + (this.satPa ? ' sat' : ''));
+    this.lerret.hidden = !this.satPa;
+  }
+
+  settSatellitt(pa) {
+    this.satPa = pa;
+    this.settKlasse();
+    if (pa) this.fest(); else this.satellitt.tom();
+  }
+
   paKlikk(fn) { this.klikkFn = fn; }
 
   // --- Visning ---
 
   // Kartflaten rundt kartet. Den skaleres aldri, så mål tas herfra og ikke fra
-  // selve kartet, som kan være midlertidig skalert under zoom (se tegn).
+  // beholderen med kartet, som kan være midlertidig skalert under zoom (se tegn).
   ramme() { return this.flate.getBoundingClientRect(); }
 
   passendeS([x0, y0, x1, y1], marg) {
@@ -105,7 +125,8 @@ HG.Kart = class Kart {
   }
 
   // Under zoom og panorering tegnes ikke kartet på nytt. Det ferdigtegnede
-  // bildet flyttes og skaleres med en CSS-transform, som er nesten gratis.
+  // kartet og satellittbildet flyttes og skaleres med en CSS-transform, som er
+  // nesten gratis.
   // Når bevegelsen har stoppet en liten stund, tegnes kartet skarpt (fest).
   tegn() {
     if (this.bildeVenter) return;
@@ -120,7 +141,7 @@ HG.Kart = class Kart {
       if ((k > 2 || k < 0.5) && performance.now() - this.sistFestet > 400) return this.fest();
       const tx = W / 2 * (1 - k) + (t.cx - v.cx) / v.s;
       const ty = H / 2 * (1 - k) + (t.cy - v.cy) / v.s;
-      this.svg.style.transform = `translate(${tx}px, ${ty}px) scale(${k})`;
+      this.beholder.style.transform = `translate(${tx}px, ${ty}px) scale(${k})`;
       clearTimeout(this.festTid);
       this.festTid = setTimeout(() => this.fest(), 150);
     });
@@ -134,12 +155,13 @@ HG.Kart = class Kart {
     const { width: W, height: H } = this.ramme();
     const { cx, cy, s } = this.vis;
     this.svg.setAttribute('viewBox', `${cx - W * s / 2} ${cy - H * s / 2} ${W * s} ${H * s}`);
-    this.svg.style.transform = '';
+    this.beholder.style.transform = '';
     this.tegnet = { ...this.vis };
     this.sistFestet = performance.now();
     // Etiketter holder fast skjermstørrelse.
     this.etikettLag.style.fontSize = 14 * s + 'px';
     this.etikettLag.style.strokeWidth = 4 * s + 'px';
+    if (this.satPa) this.satellitt.oppdater(this.vis, W, H);
   }
 
   synligBoks() {

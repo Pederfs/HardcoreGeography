@@ -99,7 +99,9 @@ HG.nivaer = (() => {
   // lag: hvilken type id som kan klikkes ('f', 'k', 'b' eller 'p').
   function lag(id, t) {
     const { niva, fylke, gruppe } = del(id);
-    const felles = { id, niva, fylke, tittel: tittel(id), etikett, liv: 3, visEtiketter: false };
+    // Satellittbilde under kartet fra nivå 3 og i bonusen.
+    const satellitt = niva === 'P' || niva >= 3;
+    const felles = { id, niva, fylke, tittel: tittel(id), etikett, liv: 3, visEtiketter: false, satellitt };
 
     if (niva === 'P') {
       const sporsmal = postnummer.filter(p => gruppe === 'alle' || p.bydel === gruppe);

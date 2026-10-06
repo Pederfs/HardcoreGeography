@@ -52,12 +52,17 @@
         <div class="stor"></div>
         <div class="under"></div>
       </div>
-      <svg id="kart" class="kart" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Kart over Norge"></svg>
+      <div class="kartlag">
+        <canvas class="satbilde" hidden></canvas>
+        <svg id="kart" class="kart" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Kart over Norge"></svg>
+      </div>
       <div id="zoomknapper">
         <button data-zoom="inn" title="Zoom inn (+)">+</button>
         <button data-zoom="ut" title="Zoom ut (−)">−</button>
         <button data-zoom="hele" title="Tilbakestill visning (0)">⤢</button>
+        <button data-zoom="sat" class="sat-knapp" title="Satellittbilde av/på">🛰</button>
       </div>
+      <small id="satkreditt" hidden></small>
     </div>
 
     <dialog id="resultat">
@@ -76,6 +81,8 @@
   <script src="js/storage.js"></script>
   <script src="js/quiz.js"></script>
   <script src="js/levels.js"></script>
+  <script src="js/projeksjon.js"></script>
+  <script src="js/satellitt.js"></script>
   <script src="js/map.js"></script>
   <script src="js/main.js"></script>
 </body>

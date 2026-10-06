@@ -12,6 +12,7 @@ HG.lagring = (() => {
       rekord: 0,     // lengste streak i Hardcore
       hardcore: false,
       fritt: false,  // fritt valg: alle nivåer åpne, for å prøve dem
+      satellitt: true, // satellittbilde under kartet i nivå 3–6 og bonusen
     };
   }
 

@@ -298,21 +298,37 @@ body:not([data-fri="ja"]) #zoomknapper { display: none; }
 
 /* --- Kart --- */
 
+.kartlag {
+  position: absolute;
+  inset: 0;
+  /* Under zoom flyttes kart og satellittbilde med en transform (se map.js). */
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
 .kart {
+  position: relative;
   display: block;
   width: 100%;
   height: 100%;
-  background: var(--hav);
   touch-action: none;
   cursor: crosshair;
-  /* Under zoom flyttes kartet med en transform (se map.js). Det tegnes også
-     utenfor rammen, så det ikke blir tomme kanter når du zoomer ut eller drar. */
+  /* Kartet tegnes også utenfor rammen, så det ikke blir tomme kanter når du zoomer ut eller drar. */
   overflow: visible;
-  transform-origin: 0 0;
-  will-change: transform;
   user-select: none;
   -webkit-user-select: none;
 }
+
+/* Satellittlerretet går 25 % utenfor rammen på hver side (se satellitt.js). */
+.satbilde {
+  position: absolute;
+  left: -25%;
+  top: -25%;
+  width: 150%;
+  height: 150%;
+  pointer-events: none;
+}
+.satbilde[hidden] { display: none; }
 
 .kart.fri { cursor: grab; }
 .kart.fri:active { cursor: grabbing; }
@@ -382,6 +398,53 @@ body:not([data-fri="ja"]) #zoomknapper { display: none; }
 }
 
 .etiketter text.midlertidig { fill: var(--feil); }
+
+/* --- Satellittbilde (nivå 3–6 og bonusen) --- */
+
+.kart.sat .omriss { fill: none; stroke: none; }
+
+/* Grensene må synes oppå bildet, og det som kan klikkes, er gjennomsiktig. */
+.kart.sat.modus-fylker .fylker path { fill: transparent; stroke: rgba(255, 255, 255, 0.9); stroke-width: 1; }
+.kart.sat .kommuner path.aktiv,
+.kart.sat .bydeler path.aktiv,
+.kart.sat .postnummer path.aktiv { fill: transparent; stroke: rgba(255, 255, 255, 0.85); stroke-width: 0.8; }
+
+/* Det som ikke spørres om, dempes. */
+.kart.sat.modus-fylke .fylker path,
+.kart.sat.modus-bydel .fylker path,
+.kart.sat.modus-post .fylker path { fill: rgba(0, 0, 0, 0.5); stroke: rgba(255, 255, 255, 0.35); }
+.kart.sat .fylker path.valgt { fill: none; stroke: #fff; stroke-width: 1.4; }
+.kart.sat .bydeler path:not(.aktiv),
+.kart.sat .postnummer path:not(.aktiv) { fill: rgba(0, 0, 0, 0.5); stroke: rgba(255, 255, 255, 0.35); }
+.kart.sat.modus-post .bydeler path { fill: none; stroke: rgba(255, 255, 255, 0.75); stroke-width: 1.2; }
+
+/* Grønt og markeringer er halvgjennomsiktige, så bildet synes under. */
+.kart.sat .kommuner path.ferdig,
+.kart.sat .bydeler path.ferdig,
+.kart.sat .postnummer path.ferdig { fill: rgba(63, 180, 90, 0.45); }
+.kart.sat path.riktig, .kart.sat path.feil, .kart.sat path.blink { fill-opacity: 0.65; }
+
+.kart.sat .etiketter text { fill: #fff; stroke: rgba(0, 0, 0, 0.75); }
+.kart.sat .etiketter text.midlertidig { fill: #ffd25e; }
+
+.sat-knapp { display: none; }
+body[data-sat="ja"] .sat-knapp { display: block; }
+#zoomknapper .sat-knapp.pa { background: var(--aksent); border-color: var(--aksent); }
+
+#satkreditt {
+  position: absolute;
+  left: 8px;
+  bottom: 6px;
+  z-index: 2;
+  max-width: calc(100% - 80px);
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 0.65rem;
+  line-height: 1.3;
+  pointer-events: none;
+}
 
 /* --- Resultat --- */
 

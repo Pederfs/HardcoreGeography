@@ -104,6 +104,15 @@ Oslo is both fylke 03 and a single kommune (0301), so its Levels 3 and 4 used to
 - Coordinates are in 10 m units, ten times finer than the rest of the map, so the smallest postnummer can be clicked. You can zoom in to about 2 m per screen pixel.
 - Shared geometry helpers (projection, label points, SVG paths) live in `tools/geo.mjs` and are used by both build scripts.
 
+## Satellite images (added 2026-10-06)
+
+Levels 3–6 and the postnummer bonus show satellite images under the borders, so you can see coastlines, valleys, glaciers and towns. A 🛰 button in the zoom bar turns them off and on, and the choice is remembered.
+
+- **Source:** Sentinel-2 cloudless 2024 from EOX (tiles.maps.eox.at). It is 10 m resolution, cloud-free, and covers all of Europe, under the CC BY-NC-SA 4.0 licence. The game is free and non-commercial, and the credit is shown on the map. Kartverket's "Norge i bilder" is better, but its API needs a Norge digitalt agreement.
+- **Projection:** the tiles only exist in Web Mercator, and the map is in UTM 33. `js/satellitt.js` draws each tile on a canvas behind the map, split into 8×8 small pieces that are each placed with their own affine transform. The error is under half a pixel. `js/projeksjon.js` converts between longitude/latitude and map coordinates using the same formulas as the build scripts.
+- The canvas reaches 25 % outside the frame and moves together with the map during zoom (same CSS transform). It is only redrawn sharply when the map is. While new tiles load, a coarser tile covers the same area.
+- Borders are white on the image. Areas that are not asked about are darkened, and green and the other markings are semi-transparent.
+
 ## Later (not in v1)
 
 - Bydeler for Bergen, Trondheim and Stavanger. SSB's grunnkrets → bydel table already includes them, so `build-oslo.mjs` can be extended.

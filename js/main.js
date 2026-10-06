@@ -116,7 +116,8 @@
     }
   });
 
-  $('#kilde').textContent = N.kilde + ' ' + window.OSLO.kilde;
+  $('#kilde').textContent = N.kilde + ' ' + window.OSLO.kilde + ' ' + HG.Satellitt.KREDITT + '.';
+  $('#satkreditt').textContent = HG.Satellitt.KREDITT;
 
   // --- Runde ---
 
@@ -128,22 +129,32 @@
     document.body.dataset.skjerm = 'spill';
     document.body.dataset.fri = niva.kart.fri === false ? 'nei' : 'ja';
     $('#niva-tittel').textContent = niva.tittel;
-    kart.oppsett(niva.kart);
+    kart.oppsett({ ...niva.kart, satellitt: visSat() });
+    oppdaterSatKnapp();
     steg = niva.totrinn ? 'fylke' : null;
     visSporsmal();
+  }
+
+  // Satellittbilde vises i nivåer som har det, med mindre spilleren har slått det av.
+  const visSat = () => !!niva?.satellitt && t.satellitt !== false;
+
+  function oppdaterSatKnapp() {
+    document.body.dataset.sat = niva?.satellitt ? 'ja' : 'nei';
+    $('#satkreditt').hidden = !visSat();
+    $('[data-zoom="sat"]').classList.toggle('pa', visSat());
   }
 
   // Tilbake til fylkeskartet for neste spørsmål i nivå 5–6.
   function fylkeSteg() {
     steg = 'fylke';
-    kart.oppsett({ ...niva.kart, behold: true });
+    kart.oppsett({ ...niva.kart, behold: true, satellitt: visSat() });
   }
 
   // Riktig fylke valgt: zoom inn og vis bare kommunene i fylket.
   function kommuneSteg(fylke) {
     steg = 'kommune';
     const aktive = new Set(nivaer.kommuner.filter(k => k.fylke === fylke).map(k => k.id));
-    kart.oppsett({ modus: 'fylke', fylke, aktive, behold: true });
+    kart.oppsett({ modus: 'fylke', fylke, aktive, behold: true, satellitt: visSat() });
     visSporsmal();
   }
 
@@ -293,6 +304,12 @@
     if (valg === 'inn') kart.zoom(1.6);
     if (valg === 'ut') kart.zoom(1 / 1.6);
     if (valg === 'hele') kart.visHele();
+    if (valg === 'sat') {
+      t.satellitt = !visSat();
+      HG.lagring.lagre(t);
+      kart.settSatellitt(visSat());
+      oppdaterSatKnapp();
+    }
   });
 
   document.addEventListener('keydown', e => {
