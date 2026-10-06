@@ -28,8 +28,8 @@
     --dempet: #9a9ca1;
     --linje: #33363c;
     --hav: #142430;
-    --land: #2d2c29;
-    --land-dempet: #232220;
+    --land: #36342f;
+    --land-dempet: #1f1e1c;
     --kyst: #4a5a66;
     --kant: #5d5850;
     --fylkekant: #d8d2c6;
@@ -161,14 +161,20 @@ button.niva:disabled, .fylkesliste.stengt { opacity: 0.55; }
 .stjerne { color: var(--stjerne); font-size: 1.2rem; }
 .stjerne.glemt { opacity: 0.6; }
 
-.testmodus {
-  margin: 0;
-  padding: 8px 12px;
+.fritt-valg {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--linje);
   border-radius: 8px;
-  background: var(--blink);
-  color: #1d1f22;
+  background: var(--panel);
   font-size: 0.9rem;
+  cursor: pointer;
 }
+
+.fritt-valg input { margin-top: 3px; width: 18px; height: 18px; flex: none; }
+.fritt-valg.pa { background: var(--blink); border-color: var(--blink); color: #1d1f22; }
 
 .regler {
   margin-top: 24px;

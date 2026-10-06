@@ -4,8 +4,10 @@
   const $ = s => document.querySelector(s);
   const nivaer = HG.nivaer;
 
-  // ?test i adressen låser opp alle nivåer, for utprøving.
-  const testmodus = new URLSearchParams(location.search).has('test');
+  // Fritt valg låser opp alle nivåer. Det slås på med bryteren i menyen,
+  // eller med ?test i adressen.
+  const testIAdressen = new URLSearchParams(location.search).has('test');
+  const fritt = () => testIAdressen || !!t.fritt;
 
   let t = HG.lagring.last();
   let niva = null, runde = null, opptatt = false;
@@ -15,7 +17,7 @@
   // 'P:alle' står for hele postnummer-bonusen når vi melder hva som ble låst opp.
   const alleIder = () => ['1', '2',
     ...N.fylker.flatMap(f => ['3:' + f.nr, '4:' + f.nr]), '5', '6', 'P:alle'];
-  const apen = id => testmodus || nivaer.erApen(id, t);
+  const apen = id => fritt() || nivaer.erApen(id, t);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
   // --- Meny ---
@@ -56,7 +58,11 @@
       ${t.hardcore ? ' · <strong class="hardcore">Du er Hardcore</strong>' : ''}</span>`;
 
     $('#meny-innhold').innerHTML = `
-      ${testmodus ? '<p class="testmodus">Testmodus: alle nivåer er låst opp.</p>' : ''}
+      <label class="fritt-valg ${fritt() ? 'pa' : ''}">
+        <input type="checkbox" id="fritt" ${fritt() ? 'checked' : ''} ${testIAdressen ? 'disabled' : ''}>
+        <span><strong>Fritt valg</strong> – alle nivåer er åpne, så du kan prøve hva du vil.
+        ${testIAdressen ? 'Slått på med ?test i adressen.' : 'Det du består, teller fortsatt.'}</span>
+      </label>
       ${kort('1', 'Hele Norge med fylkesgrenser. Finn fylket med navnet.')}
       ${kort('2', 'Samme kart. Finn fylket med nummeret.')}
       <section class="niva fylkesliste ${apen('3:' + N.fylker[0].nr) ? '' : 'stengt'}">
@@ -92,6 +98,13 @@
   $('#meny').addEventListener('click', e => {
     const knapp = e.target.closest('[data-start]');
     if (knapp && !knapp.disabled) start(knapp.dataset.start);
+  });
+
+  $('#meny').addEventListener('change', e => {
+    if (e.target.id !== 'fritt') return;
+    t.fritt = e.target.checked;
+    HG.lagring.lagre(t);
+    visMeny();
   });
 
   $('#nullstill').addEventListener('click', () => {

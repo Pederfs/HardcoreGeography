@@ -11,6 +11,7 @@ HG.lagring = (() => {
       bom: {},       // spørsmåls-id -> antall bom som ikke er rettet opp ennå
       rekord: 0,     // lengste streak i Hardcore
       hardcore: false,
+      fritt: false,  // fritt valg: alle nivåer åpne, for å prøve dem
     };
   }
 
