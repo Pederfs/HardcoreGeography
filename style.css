@@ -242,7 +242,12 @@ button.niva:disabled, .fylkesliste.stengt { opacity: 0.55; }
   background: var(--bakgrunn);
 }
 
-.kartflate { position: relative; min-height: 0; }
+.kartflate {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--hav);
+}
 
 #sporsmal {
   position: absolute;
@@ -298,6 +303,11 @@ body:not([data-fri="ja"]) #zoomknapper { display: none; }
   background: var(--hav);
   touch-action: none;
   cursor: crosshair;
+  /* Under zoom flyttes kartet med en transform (se map.js). Det tegnes også
+     utenfor rammen, så det ikke blir tomme kanter når du zoomer ut eller drar. */
+  overflow: visible;
+  transform-origin: 0 0;
+  will-change: transform;
   user-select: none;
   -webkit-user-select: none;
 }

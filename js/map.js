@@ -49,8 +49,15 @@ HG.Kart = class Kart {
     for (const b of O.bydeler) leggTil('b' + b.nr, b, this.bydelLag);
     for (const p of O.postnummer) leggTil('p' + p.nr, p, this.postLag);
 
+    this.flate = svg.parentNode;
     this.lyttEtterPekere();
-    new ResizeObserver(() => (this.fri ? this.tegn() : this.tilpass(this.malBoks))).observe(svg);
+    let str = '';
+    new ResizeObserver(() => {
+      const { width, height } = this.ramme();
+      if (width + 'x' + height === str) return; // bare når størrelsen faktisk endres
+      str = width + 'x' + height;
+      if (this.fri) this.fest(); else this.tilpass(this.malBoks);
+    }).observe(this.flate);
   }
 
   // modus: 'fylker' (nivå 1–2), 'fylke' (nivå 3–4), 'bydel' (Oslo i nivå 3–4),
@@ -76,37 +83,70 @@ HG.Kart = class Kart {
 
   // --- Visning ---
 
+  // Kartflaten rundt kartet. Den skaleres aldri, så mål tas herfra og ikke fra
+  // selve kartet, som kan være midlertidig skalert under zoom (se tegn).
+  ramme() { return this.flate.getBoundingClientRect(); }
+
   passendeS([x0, y0, x1, y1], marg) {
-    const { width: W, height: H } = this.svg.getBoundingClientRect();
+    const { width: W, height: H } = this.ramme();
     return Math.max((x1 - x0) / W, (y1 - y0) / H) * (1 + 2 * marg);
   }
 
   tilpass(boks, marg = 0.06) {
     this.malBoks = boks;
-    const { width: W, height: H } = this.svg.getBoundingClientRect();
+    const { width: W, height: H } = this.ramme();
     if (!W || !H) return;
     const [x0, y0, x1, y1] = boks;
     this.vis = { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, s: this.passendeS(boks, marg) };
-    this.tegn();
+    this.fest();
   }
 
+  // Under zoom og panorering tegnes ikke kartet på nytt. Det ferdigtegnede
+  // bildet flyttes og skaleres med en CSS-transform, som er nesten gratis.
+  // Når bevegelsen har stoppet en liten stund, tegnes kartet skarpt (fest).
   tegn() {
-    const { width: W, height: H } = this.svg.getBoundingClientRect();
+    if (this.bildeVenter) return;
+    this.bildeVenter = requestAnimationFrame(() => {
+      this.bildeVenter = 0;
+      const t = this.tegnet, v = this.vis;
+      if (!t) return this.fest();
+      const { width: W, height: H } = this.ramme();
+      const k = t.s / v.s;
+      // Blir bildet for uskarpt (over 2x forstørret) eller for lite, tegnes kartet
+      // skarpt med en gang, men høyst omtrent hvert 0,4 sekund.
+      if ((k > 2 || k < 0.5) && performance.now() - this.sistFestet > 400) return this.fest();
+      const tx = W / 2 * (1 - k) + (t.cx - v.cx) / v.s;
+      const ty = H / 2 * (1 - k) + (t.cy - v.cy) / v.s;
+      this.svg.style.transform = `translate(${tx}px, ${ty}px) scale(${k})`;
+      clearTimeout(this.festTid);
+      this.festTid = setTimeout(() => this.fest(), 150);
+    });
+  }
+
+  // Tegner kartet skarpt for visningen i this.vis.
+  fest() {
+    clearTimeout(this.festTid);
+    cancelAnimationFrame(this.bildeVenter);
+    this.bildeVenter = 0;
+    const { width: W, height: H } = this.ramme();
     const { cx, cy, s } = this.vis;
     this.svg.setAttribute('viewBox', `${cx - W * s / 2} ${cy - H * s / 2} ${W * s} ${H * s}`);
+    this.svg.style.transform = '';
+    this.tegnet = { ...this.vis };
+    this.sistFestet = performance.now();
     // Etiketter holder fast skjermstørrelse.
     this.etikettLag.style.fontSize = 14 * s + 'px';
     this.etikettLag.style.strokeWidth = 4 * s + 'px';
   }
 
   synligBoks() {
-    const { width: W, height: H } = this.svg.getBoundingClientRect();
+    const { width: W, height: H } = this.ramme();
     const { cx, cy, s } = this.vis;
     return [cx - W * s / 2, cy - H * s / 2, cx + W * s / 2, cy + H * s / 2];
   }
 
   zoom(faktor, px, py) {
-    const r = this.svg.getBoundingClientRect();
+    const r = this.ramme();
     if (px === undefined) { px = r.width / 2; py = r.height / 2; }
     const { cx, cy, s } = this.vis;
     // Lengst ut: startvisningen. Lengst inn: ca. 2 m per skjermpiksel (for små postnummer).
@@ -159,7 +199,7 @@ HG.Kart = class Kart {
         if (dratt) this.panorer(naa.x - forrige.x, naa.y - forrige.y);
       } else if (pekere.size === 2) {
         const d = avstand();
-        const r = svg.getBoundingClientRect();
+        const r = this.ramme();
         const [a, b] = [...pekere.values()];
         if (klypeAvstand) this.zoom(d / klypeAvstand, (a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top);
         klypeAvstand = d;
@@ -186,7 +226,7 @@ HG.Kart = class Kart {
       e.preventDefault();
       const enhet = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1;
       const dy = Math.max(-100, Math.min(100, e.deltaY * enhet));
-      const r = svg.getBoundingClientRect();
+      const r = this.ramme();
       this.zoom(Math.exp(-dy * (e.ctrlKey ? 0.015 : 0.004)), e.clientX - r.left, e.clientY - r.top);
     }, { passive: false });
 
@@ -196,7 +236,7 @@ HG.Kart = class Kart {
     svg.addEventListener('gesturechange', e => {
       e.preventDefault();
       if (!this.fri) return;
-      const r = svg.getBoundingClientRect();
+      const r = this.ramme();
       this.zoom(e.scale / skala, e.clientX - r.left, e.clientY - r.top);
       skala = e.scale;
     });
@@ -232,7 +272,7 @@ HG.Kart = class Kart {
     const etikett = this.visEtikett(id, tekst, 'midlertidig');
     return new Promise(ferdig => setTimeout(() => {
       etikett.remove();
-      if (tilbake) { this.vis = tilbake; this.tegn(); }
+      if (tilbake) { this.vis = tilbake; this.fest(); }
       ferdig();
     }, ms));
   }
