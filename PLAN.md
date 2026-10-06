@@ -127,6 +127,7 @@ Levels 3–6 and the postnummer bonus show satellite images under the borders, s
 - **Source:** Sentinel-2 cloudless 2024 from EOX (tiles.maps.eox.at). It is 10 m resolution, cloud-free, and covers all of Europe, under the CC BY-NC-SA 4.0 licence. The game is free and non-commercial, and the credit is shown on the map. Kartverket's "Norge i bilder" is better, but its API needs a Norge digitalt agreement.
 - **Projection:** the tiles only exist in Web Mercator, and the map is in UTM 33. `js/satellitt.js` draws each tile on a canvas behind the map, split into 8×8 small pieces that are each placed with their own affine transform. The error is under half a pixel. `js/projeksjon.js` converts between longitude/latitude and map coordinates using the same formulas as the build scripts.
 - The canvas reaches 25 % outside the frame and moves together with the map during zoom (same CSS transform). It is only redrawn sharply when the map is. While new tiles load, a coarser tile covers the same area.
+- In Levels 3–4 (shown numbers), choosing the fylke uses the plain map, and the satellite image only appears once the right fylke is chosen. The text above the name is "Velg fylket", then "Finn kommunen".
 - Borders are white on the image. Areas that are not asked about are darkened, and green and the other markings are semi-transparent.
 
 ## Later (not in v1)

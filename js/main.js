@@ -130,39 +130,45 @@
     document.body.dataset.skjerm = 'spill';
     document.body.dataset.fri = niva.kart.fri === false ? 'nei' : 'ja';
     $('#niva-tittel').textContent = niva.tittel;
-    kart.oppsett({ ...niva.kart, satellitt: visSat() });
-    oppdaterSatKnapp();
     steg = niva.totrinn ? 'fylke' : null;
+    kart.oppsett({ ...niva.kart, satellitt: satNaa() });
+    oppdaterSatKnapp();
     visSporsmal();
   }
 
   // Satellittbilde vises i nivåer som har det, med mindre spilleren har slått det av.
   const visSat = () => !!niva?.satellitt && t.satellitt !== false;
 
+  // I nivå 3–4 (to steg) er fylkesvalget et vanlig kart, og satellittbildet
+  // kommer først når riktig fylke er valgt.
+  const satNaa = () => visSat() && steg !== 'fylke';
+
   function oppdaterSatKnapp() {
     document.body.dataset.sat = niva?.satellitt ? 'ja' : 'nei';
-    $('#satkreditt').hidden = !visSat();
+    $('#satkreditt').hidden = !satNaa();
     $('[data-zoom="sat"]').classList.toggle('pa', visSat());
   }
 
   // Tilbake til fylkeskartet for neste spørsmål i nivå 5–6.
   function fylkeSteg() {
     steg = 'fylke';
-    kart.oppsett({ ...niva.kart, behold: true, satellitt: visSat() });
+    kart.oppsett({ ...niva.kart, behold: true, satellitt: false });
+    oppdaterSatKnapp();
   }
 
   // Riktig fylke valgt: zoom inn og vis bare kommunene i fylket.
   function kommuneSteg(fylke) {
     steg = 'kommune';
     const aktive = new Set(nivaer.kommuner.filter(k => k.fylke === fylke).map(k => k.id));
-    kart.oppsett({ modus: 'fylke', fylke, aktive, behold: true, satellitt: visSat() });
+    kart.oppsett({ modus: 'fylke', fylke, aktive, behold: true, satellitt: satNaa() });
+    oppdaterSatKnapp();
     visSporsmal();
   }
 
   function visSporsmal() {
     const { liten, stor, under = '' } = niva.tekst(runde.naa);
-    $('#sporsmal .liten').textContent = steg === 'fylke' ? `${liten} · velg fylket`
-      : steg === 'kommune' ? `${liten} · finn kommunen` : liten;
+    $('#sporsmal .liten').textContent = steg === 'fylke' ? 'Velg fylket'
+      : steg === 'kommune' ? 'Finn kommunen' : liten;
     $('#sporsmal .stor').textContent = stor;
     $('#sporsmal .under').textContent = under;
     oppdaterHud();
@@ -321,7 +327,7 @@
     if (valg === 'sat') {
       t.satellitt = !visSat();
       HG.lagring.lagre(t);
-      kart.settSatellitt(visSat());
+      kart.settSatellitt(satNaa());
       oppdaterSatKnapp();
     }
   });
