@@ -4,10 +4,13 @@
   const $ = s => document.querySelector(s);
   const nivaer = HG.nivaer;
 
-  // Fritt valg låser opp alle nivåer. Det slås på med bryteren i menyen,
-  // eller med ?test i adressen.
-  const testIAdressen = new URLSearchParams(location.search).has('test');
-  const fritt = () => testIAdressen || !!t.fritt;
+  // Fritt valg låser opp alle nivåer, for å teste. Bryteren (og ?test i adressen)
+  // virker bare når spillet kjører lokalt (localhost eller fil). På den delte
+  // siden må nivåene låses opp ved å bestå dem.
+  const lokalt = location.protocol === 'file:' || ['localhost', '127.0.0.1', ''].includes(location.hostname);
+  const testIAdressen = lokalt && new URLSearchParams(location.search).has('test');
+  const kanVelgeFritt = lokalt;
+  const fritt = () => testIAdressen || (lokalt && !!t.fritt);
 
   let t = HG.lagring.last();
   let niva = null, runde = null, opptatt = false;
@@ -60,11 +63,11 @@
       ${t.hardcore ? ' · <strong class="hardcore">Du er Hardcore</strong>' : ''}</span>`;
 
     $('#meny-innhold').innerHTML = `
-      <label class="fritt-valg ${fritt() ? 'pa' : ''}">
+      ${kanVelgeFritt ? `<label class="fritt-valg ${fritt() ? 'pa' : ''}">
         <input type="checkbox" id="fritt" ${fritt() ? 'checked' : ''} ${testIAdressen ? 'disabled' : ''}>
         <span><strong>Fritt valg</strong> – alle nivåer er åpne, så du kan prøve hva du vil.
-        ${testIAdressen ? 'Slått på med ?test i adressen.' : 'Det du består, teller fortsatt.'}</span>
-      </label>
+        ${testIAdressen ? 'Slått på med ?test i adressen.' : 'Bare synlig når du tester lokalt.'}</span>
+      </label>` : ''}
       ${kort('1', 'Hele Norge med fylkesgrenser. Finn fylket med navnet.')}
       ${kort('2', 'Samme kart. Finn fylket med nummeret.')}
       <section class="niva fylkesliste ${apen('3:' + N.fylker[0].nr) ? '' : 'stengt'}">
