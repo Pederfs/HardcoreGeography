@@ -11,6 +11,8 @@
 
   let t = HG.lagring.last();
   let niva = null, runde = null, opptatt = false;
+  // Nivå 5–6 går i to steg: 'fylke' (velg fylket) og så 'kommune'.
+  let steg = null;
 
   const kart = new HG.Kart($('#kart'));
 
@@ -71,8 +73,8 @@
         <span class="niva-tekst">Navn først, så nummer. Nivå 5 åpnes når alle fylkene har bestått nummer.</span>
         <ul>${N.fylker.map(fylkeRad).join('')}</ul>
       </section>
-      ${kort('5', `${nivaer.NIVA5_ANTALL} kommuner fra hele landet, med nummer og navn. Kommunegrenser, men ingen navn på kartet.`)}
-      ${kort('6', 'Alle 357 kommuner. Ett liv. Ingen navn. Lengste streak er poengsummen.', rekord)}
+      ${kort('5', `${nivaer.NIVA5_ANTALL} kommuner fra hele landet. Du får nummer og navn, velger fylket først og så kommunen.`)}
+      ${kort('6', 'Alle 357 kommuner, bare nummer. Velg fylket, så kommunen. Ett liv. Lengste streak er poengsummen.', rekord)}
       ${postBonus()}
     `;
   }
@@ -127,12 +129,28 @@
     document.body.dataset.fri = niva.kart.fri === false ? 'nei' : 'ja';
     $('#niva-tittel').textContent = niva.tittel;
     kart.oppsett(niva.kart);
+    steg = niva.totrinn ? 'fylke' : null;
+    visSporsmal();
+  }
+
+  // Tilbake til fylkeskartet for neste spørsmål i nivå 5–6.
+  function fylkeSteg() {
+    steg = 'fylke';
+    kart.oppsett({ ...niva.kart, behold: true });
+  }
+
+  // Riktig fylke valgt: zoom inn og vis bare kommunene i fylket.
+  function kommuneSteg(fylke) {
+    steg = 'kommune';
+    const aktive = new Set(nivaer.kommuner.filter(k => k.fylke === fylke).map(k => k.id));
+    kart.oppsett({ modus: 'fylke', fylke, aktive, behold: true });
     visSporsmal();
   }
 
   function visSporsmal() {
     const { liten, stor, under = '' } = niva.tekst(runde.naa);
-    $('#sporsmal .liten').textContent = liten;
+    $('#sporsmal .liten').textContent = steg === 'fylke' ? `${liten} · velg fylket`
+      : steg === 'kommune' ? `${liten} · finn kommunen` : liten;
     $('#sporsmal .stor').textContent = stor;
     $('#sporsmal .under').textContent = under;
     oppdaterHud();
@@ -150,9 +168,18 @@
   kart.paKlikk(async id => {
     if (!runde || runde.ferdig || opptatt) return;
     // Bare klikk i laget som spørres om, teller.
-    if (nivaer.type(id) !== niva.lag) return;
+    if (nivaer.type(id) !== (steg === 'fylke' ? 'f' : niva.lag)) return;
 
     const denne = runde;
+    // Første steg i nivå 5–6: riktig fylke går videre til kommunene. Feil fylke
+    // teller som bom på kommunen, siden bare første klikk teller.
+    const fylkeSvar = steg === 'fylke';
+    if (fylkeSvar && id === 'f' + runde.naa.fylke) {
+      kart.markerRiktig(id);
+      kommuneSteg(runde.naa.fylke);
+      return;
+    }
+
     const { riktig, maal } = runde.svar(id);
     if (riktig) {
       if (t.bom[maal.id] > 1) t.bom[maal.id]--; else delete t.bom[maal.id];
@@ -169,12 +196,25 @@
       kart.markerFeil(id);
       opptatt = true;
       oppdaterHud();
-      await kart.blink(maal.id, niva.etikett(maal));
+      // Feil fylke: vis riktig fylke. Feil kommune: vis riktig kommune.
+      const fylke = N.fylker.find(f => f.nr === maal.fylke);
+      if (fylkeSvar) await kart.blink('f' + fylke.nr, `${fylke.nr} ${fylke.navn}`);
+      else await kart.blink(maal.id, niva.etikett(maal));
       // Spilleren kan ha gått til menyen eller startet på nytt under blinkingen.
       if (runde !== denne) return;
       opptatt = false;
     }
 
+    if (niva.totrinn && !runde.ferdig) {
+      // La det grønne synes et øyeblikk før kartet går tilbake til fylkene.
+      if (riktig) {
+        opptatt = true;
+        await new Promise(r => setTimeout(r, 400));
+        if (runde !== denne) return;
+        opptatt = false;
+      }
+      fylkeSteg();
+    }
     if (runde.ferdig) avslutt(); else visSporsmal();
   });
 

@@ -353,9 +353,6 @@ body:not([data-fri="ja"]) #zoomknapper { display: none; }
 /* I postnummer-bonusen ligger bydelsgrensene over som orientering. */
 .modus-post .bydeler path { fill: none; stroke: var(--fylkekant-dempet); stroke-width: 1; }
 
-/* Nivå 5–6: alle kommunene med grenser, uten navn. Fylkesgrensene ligger litt tydeligere over. */
-.modus-norge .kommuner path { fill: var(--land); stroke: var(--kant); stroke-width: 0.4; }
-.modus-norge .fylker path { fill: none; stroke: var(--fylkekant); stroke-opacity: 0.55; stroke-width: 0.8; pointer-events: none; }
 
 /* Tilbakemelding */
 .kart path.ferdig,

@@ -72,8 +72,10 @@ tools/geo.mjs
 | 2 | Fylke borders | fylker | "46" | — |
 | 3 | Zoomed to one fylke, kommune borders | kommuner in that fylke | "Finn Voss" | — |
 | 4 | Same as 3 | same | "4621" | label "4621 Voss" |
-| 5 | Kommune borders (fylke borders slightly stronger), free zoom | all kommuner | "4621" with "Voss" below | — |
-| 6 | Same as 5 | all kommuner | "4621" | — |
+| 5 | Two steps: first only fylke borders, then the chosen fylke's kommuner. Free zoom | first fylker, then the kommuner in the fylke | "4621" with "Voss" below | — |
+| 6 | Same two steps as 5 | same | "4621" | — |
+
+**Two steps in Levels 5–6** (added 2026-10-06, also to make zooming lighter): you first click the fylke on a map that shows only fylke borders. If it is the right one, the map zooms in and shows only that fylke's kommuner. A wrong fylke counts as a miss on the kommune, because only the first click counts. The right fylke flashes, and the question comes back later in the round. After each question the map goes back to the fylke view, and green kommuner stay green.
 
 There is never hover text or a highlight on hover. Kommuner you can't see are still clickable because they have a transparent fill.
 

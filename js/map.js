@@ -60,11 +60,12 @@ HG.Kart = class Kart {
     }).observe(this.flate);
   }
 
-  // modus: 'fylker' (nivå 1–2), 'fylke' (nivå 3–4), 'bydel' (Oslo i nivå 3–4),
-  // 'post' (postnummer-bonus) eller 'norge' (nivå 5–6, alle kommuner).
+  // modus: 'fylker' (nivå 1–2 og første steg i 5–6), 'fylke' (nivå 3–4 og andre
+  // steg i 5–6), 'bydel' (Oslo i nivå 3–4) eller 'post' (postnummer-bonus).
   // aktive: id-ene som kan klikkes. fylke: fylket som utheves. boks: startvisningen.
   // fri: spilleren kan zoome og panorere selv.
-  oppsett({ modus, aktive, fylke = null, boks = null, fri = true }) {
+  // behold: behold grønne felt og etiketter (når nivå 5–6 bytter mellom stegene).
+  oppsett({ modus, aktive, fylke = null, boks = null, fri = true, behold = false }) {
     this.fri = fri;
     this.svg.setAttribute('class', 'kart modus-' + modus + (fri ? ' fri' : ''));
     for (const lag of [this.kommuneLag, this.bydelLag, this.postLag]) {
@@ -73,8 +74,10 @@ HG.Kart = class Kart {
     for (const p of this.fylkeLag.children) {
       p.classList.toggle('valgt', p.dataset.id === 'f' + fylke);
     }
-    this.fjernEtiketter();
-    this.fjernMarkeringer();
+    if (!behold) {
+      this.fjernEtiketter();
+      this.fjernMarkeringer();
+    }
     this.startBoks = boks || (fylke ? this.boks['f' + fylke] : [0, 0, this.N.bredde, this.N.hoyde]);
     this.tilpass(this.startBoks);
   }
