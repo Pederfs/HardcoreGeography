@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="nb">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hardcore Geografi</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-skjerm="meny">
+
+  <main id="meny">
+    <header class="meny-topp">
+      <h1>Hardcore Geografi</h1>
+      <p>Lær alle fylker, kommuner og kommunenummer i Norge. Ingen nåde, ingen hast.</p>
+    </header>
+
+    <div id="meny-innhold"></div>
+
+    <details class="regler">
+      <summary>Reglene</summary>
+      <ul>
+        <li><strong>100 % for å låse opp.</strong> Hvert nivå krever en perfekt runde. 99 % er stryk.</li>
+        <li><strong>3 liv per runde.</strong> Etter første feil kan runden ikke lenger låse opp noe, men du kan øve videre. Tre feil, og runden starter på nytt.</li>
+        <li><strong>Grønt er ferdig.</strong> Det du har klart, blir grønt resten av runden og kan ikke klikkes igjen.</li>
+        <li><strong>Bare første klikk teller.</strong> Etter en feil blinker riktig sted i ett sekund.</li>
+        <li><strong>Ingen tidtaker.</strong> Det handler om å ha rett, ikke om å være rask.</li>
+        <li><strong>Feil kommer tilbake.</strong> Det du bommer på, spørres igjen 3–5 spørsmål senere i samme runde. I nivå 5 kommer tidligere feil oftere.</li>
+        <li><strong>Å glemme koster.</strong> Bommer du på en kommune i nivå 5 eller 6, mister fylket sin stjerne til du består nivå 4 for det igjen.</li>
+        <li><strong>Hardcore:</strong> ett liv, alle 357 kommuner. Lengste streak er poengsummen.</li>
+      </ul>
+    </details>
+
+    <footer class="meny-bunn">
+      <button id="nullstill" class="lenke-knapp">Nullstill fremgang</button>
+      <small id="kilde"></small>
+    </footer>
+  </main>
+
+  <div id="spill">
+    <header class="hud">
+      <button id="tilbake" class="hud-knapp">← Meny</button>
+      <span id="niva-tittel"></span>
+      <span id="ikke-perfekt" class="merke feil" hidden>Ikke perfekt</span>
+      <span id="fremdrift"></span>
+      <span id="liv" aria-label="Liv"></span>
+    </header>
+
+    <div class="kartflate">
+      <div id="sporsmal" aria-live="polite">
+        <div class="liten"></div>
+        <div class="stor"></div>
+      </div>
+      <svg id="kart" class="kart" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Kart over Norge"></svg>
+      <div id="zoomknapper">
+        <button data-zoom="inn" title="Zoom inn (+)">+</button>
+        <button data-zoom="ut" title="Zoom ut (−)">−</button>
+        <button data-zoom="hele" title="Tilbakestill visning (0)">⤢</button>
+      </div>
+    </div>
+
+    <dialog id="resultat">
+      <h2 id="resultat-tittel"></h2>
+      <p id="resultat-tekst"></p>
+      <div class="knapper">
+        <button id="neste" class="primar" hidden></button>
+        <button id="igjen"></button>
+        <button id="til-meny">Til menyen</button>
+      </div>
+    </dialog>
+  </div>
+
+  <script src="data/norge.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/quiz.js"></script>
+  <script src="js/levels.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

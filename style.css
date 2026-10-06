@@ -1,0 +1,390 @@
+:root {
+  --bakgrunn: #f6f4f0;
+  --panel: #ffffff;
+  --tekst: #1d1f22;
+  --dempet: #6a6d72;
+  --linje: #e2ded6;
+  --hav: #cfdde6;
+  --land: #f3eee4;
+  --land-dempet: #e4ded2;
+  --kyst: #9aa5ad;
+  --kant: #b3aa99;
+  --fylkekant: #4a4640;
+  --fylkekant-dempet: #c9c1b2;
+  --aksent: #23577a;
+  --riktig: #3f9d5a;
+  --feil: #cf4237;
+  --blink: #f0b429;
+  --stjerne: #d39b12;
+  --ferdig: #b9dcc1;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bakgrunn: #16181b;
+    --panel: #202328;
+    --tekst: #eceae6;
+    --dempet: #9a9ca1;
+    --linje: #33363c;
+    --hav: #142430;
+    --land: #2d2c29;
+    --land-dempet: #232220;
+    --kyst: #4a5a66;
+    --kant: #5d5850;
+    --fylkekant: #d8d2c6;
+    --fylkekant-dempet: #45413b;
+    --aksent: #3d7fb3;
+    --riktig: #4fb46b;
+    --feil: #e2584c;
+    --blink: #f0b429;
+    --stjerne: #f0b429;
+    --ferdig: #2f5a3b;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; height: 100%; }
+
+body {
+  background: var(--bakgrunn);
+  color: var(--tekst);
+  font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+button:disabled { cursor: not-allowed; }
+
+body[data-skjerm="meny"] #spill { display: none; }
+body[data-skjerm="spill"] #meny { display: none; }
+
+/* --- Meny --- */
+
+#meny {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 16px 48px;
+}
+
+.meny-topp h1 {
+  margin: 0;
+  font-size: 2rem;
+  letter-spacing: -0.02em;
+}
+
+.meny-topp p { margin: 4px 0 24px; color: var(--dempet); }
+
+#meny-innhold { display: grid; gap: 12px; }
+
+.niva {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  padding: 16px;
+  text-align: left;
+  background: var(--panel);
+  border: 1px solid var(--linje);
+  border-radius: 10px;
+}
+
+button.niva:not(:disabled):hover { border-color: var(--aksent); }
+button.niva:disabled, .fylkesliste.stengt { opacity: 0.55; }
+
+.niva-topp {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.niva-tekst { color: var(--dempet); font-size: 0.95rem; }
+
+.merke {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  background: var(--linje);
+  color: var(--tekst);
+  white-space: nowrap;
+}
+
+.merke.ok { background: var(--riktig); color: #fff; }
+.merke.laast { background: transparent; border: 1px solid var(--linje); color: var(--dempet); }
+.merke.feil { background: var(--feil); color: #fff; }
+
+.hardcore { color: var(--feil); }
+
+.fylkesliste ul {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.fylkesliste li {
+  display: grid;
+  grid-template-columns: 2.2em 1fr auto auto 1.6em;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  border-top: 1px solid var(--linje);
+}
+
+.fylke-nr { font-variant-numeric: tabular-nums; color: var(--dempet); }
+
+.liten-knapp {
+  min-width: 6.5em;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--linje);
+  background: var(--bakgrunn);
+  font-size: 0.9rem;
+}
+
+.liten-knapp:not(:disabled):hover { border-color: var(--aksent); }
+.liten-knapp:disabled { opacity: 0.45; }
+.liten-knapp.ok { border-color: var(--riktig); color: var(--riktig); }
+
+.mestret { text-align: center; }
+.stjerne { color: var(--stjerne); font-size: 1.2rem; }
+.stjerne.glemt { opacity: 0.6; }
+
+.testmodus {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--blink);
+  color: #1d1f22;
+  font-size: 0.9rem;
+}
+
+.regler {
+  margin-top: 24px;
+  padding: 12px 16px;
+  background: var(--panel);
+  border: 1px solid var(--linje);
+  border-radius: 10px;
+}
+
+.regler summary { cursor: pointer; font-weight: 600; }
+.regler ul { margin: 8px 0 0; padding-left: 20px; }
+.regler li { margin: 4px 0; }
+
+.meny-bunn {
+  margin-top: 24px;
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  color: var(--dempet);
+}
+
+.lenke-knapp {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--feil);
+  text-decoration: underline;
+}
+
+/* --- Spill --- */
+
+#spill {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.hud {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--linje);
+}
+
+#niva-tittel {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#fremdrift { color: var(--dempet); font-variant-numeric: tabular-nums; white-space: nowrap; }
+#liv { color: var(--feil); font-size: 1.25rem; letter-spacing: 2px; white-space: nowrap; }
+
+.hud-knapp {
+  padding: 4px 10px;
+  border: 1px solid var(--linje);
+  border-radius: 6px;
+  background: var(--bakgrunn);
+}
+
+.kartflate { position: relative; min-height: 0; }
+
+#sporsmal {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  padding: 8px 24px 10px;
+  text-align: center;
+  background: var(--panel);
+  border: 1px solid var(--linje);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+  max-width: calc(100% - 32px);
+}
+
+#sporsmal .liten { font-size: 0.85rem; color: var(--dempet); }
+#sporsmal .stor {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+
+#zoomknapper {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 2;
+  display: grid;
+  gap: 6px;
+}
+
+body:not([data-fri="ja"]) #zoomknapper { display: none; }
+
+#zoomknapper button {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--linje);
+  border-radius: 8px;
+  background: var(--panel);
+  font-size: 1.3rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* --- Kart --- */
+
+.kart {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--hav);
+  touch-action: none;
+  cursor: crosshair;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.kart.fri { cursor: grab; }
+.kart.fri:active { cursor: grabbing; }
+
+.kart path { vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+
+.omriss {
+  fill: var(--land);
+  stroke: var(--kyst);
+  stroke-width: 0.5;
+  pointer-events: none;
+}
+
+/* Nivå 1–2: fylkene er klikkbare. */
+.modus-fylker .kommuner { display: none; }
+.modus-fylker .fylker path { fill: var(--land); stroke: var(--kant); stroke-width: 0.6; }
+
+/* Nivå 3–4: kommunene i ett fylke. */
+.modus-fylke .omriss { fill: var(--land-dempet); }
+.modus-fylke .kommuner path { display: none; }
+.modus-fylke .kommuner path.aktiv { display: inline; fill: var(--land); stroke: var(--kant); stroke-width: 0.5; }
+.modus-fylke .fylker path { fill: none; stroke: var(--fylkekant-dempet); stroke-width: 0.5; pointer-events: none; }
+.modus-fylke .fylker path.valgt { stroke: var(--kant); stroke-width: 0.8; }
+
+/* Nivå 5–6: kommunene er klikkbare, men grensene er skjult. */
+.modus-skjult .fylker { display: none; }
+/* Kanten i landfarge dekker sømmene mellom nabokommuner, så ingen grenser skimtes. */
+.modus-skjult .kommuner path { fill: var(--land); stroke: var(--land); stroke-width: 1.5; }
+
+/* Tilbakemelding */
+.kart path.ferdig,
+.modus-fylke .kommuner path.aktiv.ferdig { fill: var(--ferdig); pointer-events: none; }
+.kart path.riktig { fill: var(--riktig) !important; }
+.kart path.feil { fill: var(--feil) !important; }
+.kart path.blink {
+  fill: var(--blink) !important;
+  stroke: var(--fylkekant) !important;
+  stroke-width: 1.2 !important;
+  animation: blink 0.25s steps(1) infinite;
+}
+
+@keyframes blink {
+  50% { fill-opacity: 0.25; }
+}
+
+.etiketter text {
+  text-anchor: middle;
+  dominant-baseline: middle;
+  fill: var(--tekst);
+  stroke: var(--land);
+  paint-order: stroke;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.etiketter text.midlertidig { fill: var(--feil); }
+
+/* --- Resultat --- */
+
+#resultat {
+  width: min(420px, calc(100% - 32px));
+  padding: 24px;
+  border: 1px solid var(--linje);
+  border-radius: 14px;
+  background: var(--panel);
+  color: var(--tekst);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+
+#resultat::backdrop { background: rgba(0, 0, 0, 0.35); }
+#resultat h2 { margin: 0 0 8px; }
+#resultat p { margin: 0 0 20px; color: var(--dempet); }
+
+.knapper { display: grid; gap: 8px; }
+
+.knapper button {
+  padding: 10px 16px;
+  border: 1px solid var(--linje);
+  border-radius: 8px;
+  background: var(--bakgrunn);
+}
+
+.knapper button.primar {
+  background: var(--aksent);
+  border-color: var(--aksent);
+  color: #fff;
+}
+
+@media (max-width: 560px) {
+  .hud { gap: 8px; padding: 8px 12px; }
+  #niva-tittel { font-size: 0.9rem; }
+  #ikke-perfekt { display: none; }
+  #sporsmal .stor { font-size: 1.6rem; }
+  .fylkesliste li { grid-template-columns: 2em 1fr auto auto 1.2em; gap: 6px; }
+  .liten-knapp { min-width: 0; }
+}
