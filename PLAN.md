@@ -27,7 +27,7 @@ The internal ids are unchanged so saved progress still works. The rest of this d
 | How to play | Double-click `index.html`. Nothing to install, works offline |
 | Lives vs. 100% rule | The first miss marks the round as "not perfect, won't unlock". You can keep playing to practise, and missed places still come back. A third miss ends the round. |
 | Zoom | Scroll or pinch to zoom and drag to pan in every level. Levels 3 and 4 start zoomed to the chosen fylke, and you can't zoom out past where a level starts. *(Changed 2026-10-06: Oslo was too small to click without zoom.)* |
-| Answered places | In rounds with 3 lives (Levels 1–5), what you've answered correctly stays green and can't be clicked, so you can't hit it by mistake. So each place is asked only once per round in Levels 1–4, and earlier misses are no longer added a second time at the end. *(Changed 2026-10-06.)* |
+| Answered places | In every level (also Hardcore, since 2026-10-06), what you've answered correctly stays green and can't be clicked, so you can't hit it by mistake. So each place is asked only once per round in Levels 1–4, and earlier misses are no longer added a second time at the end. *(Changed 2026-10-06.)* |
 
 ### Defaults I picked (easy to change)
 

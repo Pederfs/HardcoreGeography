@@ -207,8 +207,8 @@
     if (riktig) {
       if (t.bom[maal.id] > 1) t.bom[maal.id]--; else delete t.bom[maal.id];
       kart.markerRiktig(id);
-      // Med 3 liv blir det du har klart liggende grønt og kan ikke klikkes igjen.
-      if (niva.liv > 1) kart.markerFerdig(id);
+      // Det du har klart, blir liggende grønt og kan ikke klikkes igjen.
+      kart.markerFerdig(id);
       if (niva.visEtiketter) kart.visEtikett(id, niva.etikett(maal));
       HG.lagring.lagre(t);
     } else {
