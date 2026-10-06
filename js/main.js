@@ -20,8 +20,8 @@
   const kart = new HG.Kart($('#kart'));
 
   // 'P:alle' står for hele postnummer-bonusen når vi melder hva som ble låst opp.
-  const alleIder = () => ['1', '2',
-    ...N.fylker.flatMap(f => ['3:' + f.nr, '4:' + f.nr]), '5', '6', 'P:alle'];
+  const alleIder = () => ['1',
+    ...N.fylker.flatMap(f => (f.nr === nivaer.OSLO ? ['3:' + f.nr] : ['3:' + f.nr, '4:' + f.nr])), '5', '6', 'P:alle'];
   const apen = id => fritt() || nivaer.erApen(id, t);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -49,10 +49,12 @@
     };
     const mestret = t.mestret[f.nr]
       ? '<span class="stjerne" title="Mestret">★</span>'
-      : (t.bestatt['4:' + f.nr] ? '<span class="stjerne glemt" title="Mestret før, men glemt i nivå 5 eller 6">☆</span>' : '');
-    const navn = f.nr === nivaer.OSLO ? `${esc(f.navn)} <small>(bydeler)</small>` : esc(f.navn);
+      : (nivaer.fylkeFerdig(f.nr, t) ? `<span class="stjerne glemt" title="Mestret før, men glemt i nivå ${nivaer.VIST[5]} eller ${nivaer.VIST[6]}">☆</span>` : '');
+    // Oslo har bare bydelsnavn, ikke nummer.
+    const oslo = f.nr === nivaer.OSLO;
+    const navn = oslo ? `${esc(f.navn)} <small>(bydeler)</small>` : esc(f.navn);
     return `<li><span class="fylke-nr">${f.nr}</span><span class="fylke-navn">${navn}</span>
-      ${knapp(3, 'Navn')}${knapp(4, 'Nummer')}<span class="mestret">${mestret}</span></li>`;
+      ${knapp(3, 'Navn')}${oslo ? '<span></span>' : knapp(4, 'Nummer')}<span class="mestret">${mestret}</span></li>`;
   }
 
   function visMeny() {
@@ -69,11 +71,10 @@
         ${testIAdressen ? 'Slått på med ?test i adressen.' : 'Bare synlig når du tester lokalt.'}</span>
       </label>` : ''}
       ${kort('1', 'Hele Norge med fylkesgrenser. Finn fylket med navnet.')}
-      ${kort('2', 'Samme kart. Finn fylket med nummeret.')}
       <section class="niva fylkesliste ${apen('3:' + N.fylker[0].nr) ? '' : 'stengt'}">
-        <span class="niva-topp"><strong>Nivå 3 og 4: Kommuner, ett fylke om gangen</strong>
+        <span class="niva-topp"><strong>Nivå 2 og 3: Kommuner, ett fylke om gangen</strong>
           <span class="merke">${antallMestret} / ${N.fylker.length} mestret</span></span>
-        <span class="niva-tekst">Navn først, så nummer. Nivå 5 åpnes når alle fylkene har bestått nummer.</span>
+        <span class="niva-tekst">Navn først, så kommunenummer. Oslo har bydeler, bare navn. Nivå 4 åpnes når alle fylkene er ferdige.</span>
         <ul>${N.fylker.map(fylkeRad).join('')}</ul>
       </section>
       ${kort('5', `${nivaer.NIVA5_ANTALL} kommuner fra hele landet. Du får nummer og navn, velger fylket først og så kommunen.`)}
@@ -94,7 +95,7 @@
         <span class="merke">${apenBonus ? `${antallBestatt} / ${nivaer.postGrupper.length} bestått` : 'Låst'}</span></span>
       <span class="niva-tekst">${apenBonus
         ? 'Alle postnummer med eget område i Oslo, én bydel om gangen. Sentrum og Marka er egne grupper.'
-        : 'Låses opp når du har bestått nivå 4 for Oslo (bydelsnummer).'}</span>
+        : 'Låses opp når du har bestått Oslo (bydeler) i nivå 2.'}</span>
       <ul>${nivaer.postGrupper.map(g => rad('P:' + g.nr, g.navn, g.antall)).join('')}
         ${rad('P:alle', 'Hele Oslo', nivaer.postnummer.length)}</ul>
     </section>`;
@@ -232,18 +233,17 @@
     if (runde.ferdig) avslutt(); else visSporsmal();
   });
 
-  // Første fylke som ikke er ferdig med nivå 4, og hvilket nivå det står på.
+  // Første fylke som ikke er ferdig med kommunenivåene, og hvilket nivå det står på.
   function nesteFylke() {
-    const f = N.fylker.find(x => !t.bestatt['4:' + x.nr]);
+    const f = N.fylker.find(x => !nivaer.fylkeFerdig(x.nr, t));
     if (!f) return '5';
     return (t.bestatt['3:' + f.nr] ? '4:' : '3:') + f.nr;
   }
 
   function nesteNiva(id) {
     const { niva: n, fylke } = nivaer.del(id);
-    if (n === 1) return '2';
-    if (n === 2) return nesteFylke();
-    if (n === 3) return '4:' + fylke;
+    if (n === 1) return nesteFylke();
+    if (n === 3) return fylke === nivaer.OSLO ? nesteFylke() : '4:' + fylke;
     if (n === 4) return nesteFylke();
     if (n === 5) return '6';
     return null; // nivå 6 og bonusen
@@ -257,7 +257,7 @@
 
     if (runde.perfekt) {
       t.bestatt[id] = true;
-      if (niva.niva === 4) t.mestret[niva.fylke] = true;
+      if (id === nivaer.sisteIFylket(niva.fylke)) t.mestret[niva.fylke] = true;
     }
     if (niva.niva === 6) {
       t.rekord = Math.max(t.rekord, runde.lengste);
@@ -265,6 +265,15 @@
     }
     HG.lagring.lagre(t);
     const nyApne = alleIder().filter(x => apen(x) && !forApne.has(x));
+    // Navn for det som ble låst opp. Åpnes mange fylker samtidig (etter nivå 1), samles de.
+    const nyApneTekst = () => {
+      const fylker = nyApne.filter(x => x.startsWith('3:'));
+      const ovrige = nyApne.filter(x => !x.startsWith('3:'))
+        .map(x => (x === 'P:alle' ? 'Bonus: Postnummer i Oslo' : esc(nivaer.tittel(x))));
+      if (fylker.length > 1) ovrige.unshift(`Nivå ${nivaer.VIST[3]} i alle ${fylker.length} fylkene`);
+      else ovrige.unshift(...fylker.map(x => esc(nivaer.tittel(x))));
+      return ovrige.join(', ');
+    };
 
     let tittel, tekst;
     if (niva.niva === 6) {
@@ -275,9 +284,9 @@
     } else if (runde.perfekt) {
       tittel = 'Perfekt!';
       tekst = nyApne.length
-        ? `Låst opp: ${nyApne.map(x => (x === 'P:alle' ? 'Bonus: Postnummer i Oslo' : esc(nivaer.tittel(x)))).join(', ')}.`
+        ? `Låst opp: ${nyApneTekst()}.`
         : 'Alt riktig på første forsøk.';
-      if (niva.niva === 4) tekst += ` ${esc(nivaer.fylkeNavn[niva.fylke])} er mestret.`;
+      if (id === nivaer.sisteIFylket(niva.fylke)) tekst += ` ${esc(nivaer.fylkeNavn[niva.fylke])} er mestret.`;
     } else if (runde.tapt) {
       tittel = 'Tom for liv';
       tekst = 'Tre feil. Runden starter på nytt fra null.';

@@ -31,6 +31,16 @@ HG.nivaer = (() => {
     6: 'Hardcore',
   };
 
+  // Fylkesnummer (gamle nivå 2) og bydelsnummer for Oslo er fjernet. Id-ene
+  // inni koden er beholdt så lagret fremgang virker, men spilleren ser nivåene
+  // nummerert 1–5 uten hull.
+  const VIST = { 1: 1, 3: 2, 4: 3, 5: 4, 6: 5 };
+
+  // Et fylke er ferdig med kommunenivåene når nummer er bestått, eller for
+  // Oslo (som bare har bydelsnavn) når navn er bestått.
+  const sisteIFylket = nr => (nr === OSLO ? '3:' : '4:') + nr;
+  const fylkeFerdig = (nr, t) => !!t.bestatt[sisteIFylket(nr)];
+
   function del(id) {
     const [niva, ledd] = String(id).split(':');
     if (niva === 'P') return { niva, fylke: OSLO, gruppe: ledd };
@@ -40,22 +50,19 @@ HG.nivaer = (() => {
   function tittel(id) {
     const { niva, fylke, gruppe } = del(id);
     if (niva === 'P') return 'Bonus: Postnummer · ' + (gruppe === 'alle' ? 'Hele Oslo' : bydelNavn[gruppe]);
-    if (fylke === OSLO && (niva === 3 || niva === 4)) {
-      return `Nivå ${niva}: ${niva === 3 ? 'Bydeler – navn' : 'Bydelsnummer'} · Oslo`;
-    }
-    return `Nivå ${niva}: ${TITLER[niva]}` + (fylke ? ` · ${fylkeNavn[fylke]}` : '');
+    if (fylke === OSLO && niva === 3) return `Nivå ${VIST[3]}: Bydeler · Oslo`;
+    return `Nivå ${VIST[niva]}: ${TITLER[niva]}` + (fylke ? ` · ${fylkeNavn[fylke]}` : '');
   }
 
   function erApen(id, t) {
     const { niva, fylke } = del(id);
     switch (niva) {
       case 1: return true;
-      case 2: return !!t.bestatt['1'];
-      case 3: return !!t.bestatt['2'];
-      case 4: return !!t.bestatt['3:' + fylke];
-      case 5: return N.fylker.every(f => t.bestatt['4:' + f.nr]);
+      case 3: return !!t.bestatt['1'];
+      case 4: return fylke !== OSLO && !!t.bestatt['3:' + fylke];
+      case 5: return N.fylker.every(f => fylkeFerdig(f.nr, t));
       case 6: return !!t.bestatt['5'];
-      case 'P': return !!t.bestatt['4:' + OSLO];
+      case 'P': return fylkeFerdig(OSLO, t);
     }
     return false;
   }
@@ -93,12 +100,15 @@ HG.nivaer = (() => {
   const visNavn = s => ({ liten: 'Finn', stor: s.navn });
   const visNr = s => ({ liten: NUMMERTYPE[type(s.id)], stor: s.nr });
   const visNrOgNavn = s => ({ ...visNr(s), under: s.navn });
-  const etikett = s => (s.fullt ? `${s.nr} ${s.fullt}` : s.nr);
+  // Bydeler vises bare med navn (bydelsnummer er fjernet), postnummer bare med nummer.
+  const etikett = s => (type(s.id) === 'b' ? s.navn : s.fullt ? `${s.nr} ${s.fullt}` : s.nr);
 
   // Lager alt en runde trenger for nivå-id-en.
   // lag: hvilken type id som kan klikkes ('f', 'k', 'b' eller 'p').
   function lag(id, t) {
     const { niva, fylke, gruppe } = del(id);
+    // Fjernede nivåer: fylkesnummer (2) og bydelsnummer for Oslo (4:03).
+    if (niva === 2 || (niva === 4 && fylke === OSLO)) throw new Error('Nivået finnes ikke lenger: ' + id);
     // Satellittbilde under kartet fra nivå 3 og i bonusen.
     const satellitt = niva === 'P' || niva >= 3;
     const felles = { id, niva, fylke, tittel: tittel(id), etikett, liv: 3, visEtiketter: false, satellitt };
@@ -110,12 +120,11 @@ HG.nivaer = (() => {
       return { ...felles, lag: 'p', sporsmal: HG.stokk(sporsmal), tekst: visNr, visEtiketter: true,
         kart: { modus: 'post', aktive: ider, fylke: OSLO, boks } };
     }
-    if ((niva === 3 || niva === 4) && fylke === OSLO) {
+    if (niva === 3 && fylke === OSLO) {
       // Startvisningen er bydelene, ikke hele Oslo med Marka.
       const aktive = new Set(bydeler.map(b => b.id));
       const kart = { modus: 'bydel', aktive, fylke, boks: samletBoks(aktive) };
-      return { ...felles, lag: 'b', sporsmal: HG.stokk(bydeler), tekst: niva === 3 ? visNavn : visNr, kart,
-        visEtiketter: niva === 4 };
+      return { ...felles, lag: 'b', sporsmal: HG.stokk(bydeler), tekst: visNavn, kart };
     }
 
     const iFylket = kommuner.filter(k => k.fylke === fylke);
@@ -123,7 +132,6 @@ HG.nivaer = (() => {
     const ingen = new Set();
     switch (niva) {
       case 1: return { ...felles, lag: 'f', sporsmal: HG.stokk(fylker), tekst: visNavn, kart: { modus: 'fylker', aktive: ingen } };
-      case 2: return { ...felles, lag: 'f', sporsmal: HG.stokk(fylker), tekst: visNr, kart: { modus: 'fylker', aktive: ingen } };
       case 3: return { ...felles, lag: 'k', sporsmal: HG.stokk(iFylket), tekst: visNavn, kart: fylkeKart };
       case 4: return { ...felles, lag: 'k', sporsmal: HG.stokk(iFylket), tekst: visNr, kart: fylkeKart, visEtiketter: true };
       // Nivå 5–6 går i to steg: velg fylket, så kommunen (se main.js).
@@ -135,5 +143,5 @@ HG.nivaer = (() => {
     throw new Error('Ukjent nivå ' + id);
   }
 
-  return { lag, erApen, tittel, del, type, fylker, kommuner, bydeler, postnummer, postGrupper, fylkeNavn, NIVA5_ANTALL, OSLO };
+  return { lag, erApen, tittel, del, type, fylkeFerdig, sisteIFylket, VIST, fylker, kommuner, bydeler, postnummer, postGrupper, fylkeNavn, NIVA5_ANTALL, OSLO };
 })();

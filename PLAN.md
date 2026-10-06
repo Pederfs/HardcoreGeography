@@ -2,6 +2,24 @@
 
 The level design and rules come from `Hardcore_Geografi_plan.md`. This file covers how to build it.
 
+## Level changes (2026-10-06)
+
+The user wants fewer number levels, but kommunenummer stay. Two levels are gone:
+- **Fylkesnummer** (the old Level 2).
+- **Bydelsnummer for Oslo** (the old Level 4 for Oslo).
+
+The postnummer bonus stays. Players now see the levels numbered 1–5, without gaps:
+
+| Shown | Internal id | Contents |
+|---|---|---|
+| Nivå 1 | `1` | Fylker – navn |
+| Nivå 2 | `3:<fylke>` | Kommuner – navn (bydeler for Oslo) |
+| Nivå 3 | `4:<fylke>` | Kommunenummer (not for Oslo) |
+| Nivå 4 | `5` | Hele Norge |
+| Nivå 5 | `6` | Hardcore |
+
+The internal ids are unchanged so saved progress still works. The rest of this document uses the old level numbers. Level 1 unlocks every fylke's Level 2. A fylke is finished, and mastered, after its Kommunenummer level, or for Oslo after Bydeler. The postnummer bonus unlocks when Oslo's Bydeler level is passed.
+
 ## Decisions
 
 | Question | Decision |
