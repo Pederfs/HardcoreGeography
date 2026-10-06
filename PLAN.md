@@ -4,21 +4,19 @@ The level design and rules come from `Hardcore_Geografi_plan.md`. This file cove
 
 ## Level changes (2026-10-06)
 
-The user wants fewer number levels, but kommunenummer stay. Two levels are gone:
-- **Fylkesnummer** (the old Level 2).
-- **Bydelsnummer for Oslo** (the old Level 4 for Oslo).
-
-The postnummer bonus stays. Players now see the levels numbered 1–5, without gaps:
+The user decided that numbers are not worth learning, so **every level that asks only for numbers is gone, except the postnummer bonus**. That means fylkesnummer (old Level 2) and kommunenummer/bydelsnummer (old Level 4). Hele Norge and Hardcore now ask by name ("Finn Voss"). Players see the levels numbered 1–4:
 
 | Shown | Internal id | Contents |
 |---|---|---|
 | Nivå 1 | `1` | Fylker – navn |
-| Nivå 2 | `3:<fylke>` | Kommuner – navn (bydeler for Oslo) |
-| Nivå 3 | `4:<fylke>` | Kommunenummer (not for Oslo) |
-| Nivå 4 | `5` | Hele Norge |
-| Nivå 5 | `6` | Hardcore |
+| Nivå 2 | `3:<fylke>` | Kommuner in one fylke (bydeler for Oslo) |
+| Nivå 3 | `5` | Hele Norge: 50 kommuner by name, fylke first, then kommune |
+| Nivå 4 | `6` | Hardcore: all 357 by name, fylke first, one life |
+| Bonus | `P:<bydel>` / `P:alle` | Postnummer i Oslo (the only level with numbers) |
 
-The internal ids are unchanged so saved progress still works. The rest of this document uses the old level numbers. Level 1 unlocks every fylke's Level 2. A fylke is finished, and mastered, after its Kommunenummer level, or for Oslo after Bydeler. The postnummer bonus unlocks when Oslo's Bydeler level is passed.
+The internal ids are unchanged so saved progress still works. The rest of this document uses the old level numbers. Level 1 unlocks Level 2 in every fylke. A fylke is finished and mastered when its Level 2 is passed. Level 3 opens when all fylker are finished. The postnummer bonus opens when Oslo's Level 2 is passed. Labels show names only.
+
+**Herøy and Våler** each exist in two fylker. The question gives only the name, so in Levels 3–4 both fylker and both kommuner count as correct.
 
 ## Decisions
 

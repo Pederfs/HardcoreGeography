@@ -20,8 +20,7 @@
   const kart = new HG.Kart($('#kart'));
 
   // 'P:alle' står for hele postnummer-bonusen når vi melder hva som ble låst opp.
-  const alleIder = () => ['1',
-    ...N.fylker.flatMap(f => (f.nr === nivaer.OSLO ? ['3:' + f.nr] : ['3:' + f.nr, '4:' + f.nr])), '5', '6', 'P:alle'];
+  const alleIder = () => ['1', ...N.fylker.map(f => '3:' + f.nr), '5', '6', 'P:alle'];
   const apen = id => fritt() || nivaer.erApen(id, t);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -50,11 +49,9 @@
     const mestret = t.mestret[f.nr]
       ? '<span class="stjerne" title="Mestret">★</span>'
       : (nivaer.fylkeFerdig(f.nr, t) ? `<span class="stjerne glemt" title="Mestret før, men glemt i nivå ${nivaer.VIST[5]} eller ${nivaer.VIST[6]}">☆</span>` : '');
-    // Oslo har bare bydelsnavn, ikke nummer.
-    const oslo = f.nr === nivaer.OSLO;
-    const navn = oslo ? `${esc(f.navn)} <small>(bydeler)</small>` : esc(f.navn);
-    return `<li><span class="fylke-nr">${f.nr}</span><span class="fylke-navn">${navn}</span>
-      ${knapp(3, 'Navn')}${oslo ? '<span></span>' : knapp(4, 'Nummer')}<span class="mestret">${mestret}</span></li>`;
+    const navn = f.nr === nivaer.OSLO ? `${esc(f.navn)} <small>(bydeler)</small>` : esc(f.navn);
+    return `<li><span class="fylke-navn">${navn}</span>
+      ${knapp(3, 'Spill')}<span class="mestret">${mestret}</span></li>`;
   }
 
   function visMeny() {
@@ -72,13 +69,13 @@
       </label>` : ''}
       ${kort('1', 'Hele Norge med fylkesgrenser. Finn fylket med navnet.')}
       <section class="niva fylkesliste ${apen('3:' + N.fylker[0].nr) ? '' : 'stengt'}">
-        <span class="niva-topp"><strong>Nivå 2 og 3: Kommuner, ett fylke om gangen</strong>
+        <span class="niva-topp"><strong>Nivå 2: Kommuner, ett fylke om gangen</strong>
           <span class="merke">${antallMestret} / ${N.fylker.length} mestret</span></span>
-        <span class="niva-tekst">Navn først, så kommunenummer. Oslo har bydeler, bare navn. Nivå 4 åpnes når alle fylkene er ferdige.</span>
+        <span class="niva-tekst">Finn kommunene i fylket. Oslo har bydeler. Nivå 3 åpnes når alle fylkene er bestått.</span>
         <ul>${N.fylker.map(fylkeRad).join('')}</ul>
       </section>
-      ${kort('5', `${nivaer.NIVA5_ANTALL} kommuner fra hele landet. Du får nummer og navn, velger fylket først og så kommunen.`)}
-      ${kort('6', 'Alle 357 kommuner, bare nummer. Velg fylket, så kommunen. Ett liv. Lengste streak er poengsummen.', rekord)}
+      ${kort('5', `${nivaer.NIVA5_ANTALL} kommuner fra hele landet. Velg fylket først, så kommunen.`)}
+      ${kort('6', 'Alle 357 kommuner. Velg fylket, så kommunen. Ett liv. Lengste streak er poengsummen.', rekord)}
       ${postBonus()}
     `;
   }
@@ -189,13 +186,18 @@
     // Første steg i nivå 5–6: riktig fylke går videre til kommunene. Feil fylke
     // teller som bom på kommunen, siden bare første klikk teller.
     const fylkeSvar = steg === 'fylke';
-    if (fylkeSvar && id === 'f' + runde.naa.fylke) {
+    // Herøy og Våler finnes i to fylker. Spørsmålet sier bare navnet, så i
+    // nivå 3–4 er begge riktige.
+    const sammeNavn = k => niva.totrinn && k.navn === runde.naa.navn;
+    if (fylkeSvar && nivaer.kommuner.some(k => sammeNavn(k) && 'f' + k.fylke === id)) {
       kart.markerRiktig(id);
-      kommuneSteg(runde.naa.fylke);
+      kommuneSteg(id.slice(1));
       return;
     }
+    const klikket = nivaer.kommuner.find(k => k.id === id);
+    const svarId = !fylkeSvar && klikket && sammeNavn(klikket) ? runde.naa.id : id;
 
-    const { riktig, maal } = runde.svar(id);
+    const { riktig, maal } = runde.svar(svarId);
     if (riktig) {
       if (t.bom[maal.id] > 1) t.bom[maal.id]--; else delete t.bom[maal.id];
       kart.markerRiktig(id);
@@ -213,7 +215,7 @@
       oppdaterHud();
       // Feil fylke: vis riktig fylke. Feil kommune: vis riktig kommune.
       const fylke = N.fylker.find(f => f.nr === maal.fylke);
-      if (fylkeSvar) await kart.blink('f' + fylke.nr, `${fylke.nr} ${fylke.navn}`);
+      if (fylkeSvar) await kart.blink('f' + fylke.nr, fylke.navn);
       else await kart.blink(maal.id, niva.etikett(maal));
       // Spilleren kan ha gått til menyen eller startet på nytt under blinkingen.
       if (runde !== denne) return;

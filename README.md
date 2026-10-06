@@ -1,6 +1,6 @@
 # Hardcore Geografi
 
-Lær alle fylker, kommuner og kommunenummer i Norge. Ingen nåde, ingen hast.
+Lær alle fylker og kommuner i Norge. Ingen nåde, ingen hast.
 
 ## Spill
 
